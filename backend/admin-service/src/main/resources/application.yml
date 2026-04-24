@@ -1,0 +1,18 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: admin-service
+  datasource:
+    url: jdbc:sqlite:/data/admin.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+
+services:
+  product: ${PRODUCT_SERVICE_URL:http://product-service:8082}
+  review: ${REVIEW_SERVICE_URL:http://review-service:8084}
+  auth: ${AUTH_SERVICE_URL:http://auth-service:8081}

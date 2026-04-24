@@ -1,0 +1,135 @@
+services:
+  # ── Infrastructure ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    networks: [oss-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  # ── API Gateway ──────────────────────────────────────────────
+  gateway-service:
+    build: ./backend/gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - auth-service
+      - product-service
+      - chat-service
+      - review-service
+      - trade-history-service
+      - admin-service
+    networks: [oss-net]
+
+  # ── Backend Services ─────────────────────────────────────────
+  auth-service:
+    build: ./backend/auth-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - auth-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [oss-net]
+
+  product-service:
+    build: ./backend/product-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - product-data:/data
+    networks: [oss-net]
+
+  chat-service:
+    build: ./backend/chat-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - chat-data:/data
+    networks: [oss-net]
+
+  review-service:
+    build: ./backend/review-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - review-data:/data
+    networks: [oss-net]
+
+  trade-history-service:
+    build: ./backend/trade-history-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - trade-data:/data
+    networks: [oss-net]
+
+  admin-service:
+    build: ./backend/admin-service
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      PRODUCT_SERVICE_URL: http://product-service:8082
+      REVIEW_SERVICE_URL: http://review-service:8084
+      AUTH_SERVICE_URL: http://auth-service:8081
+    volumes:
+      - admin-data:/data
+    networks: [oss-net]
+
+  # ── AI Services ──────────────────────────────────────────────
+  ai-recommendation:
+    build: ./ai-service/recommendation
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      PRODUCT_SERVICE_URL: http://product-service:8082
+      TRADE_SERVICE_URL: http://trade-history-service:8085
+    networks: [oss-net]
+
+  ai-trust:
+    build: ./ai-service/trust-evaluation
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      REVIEW_SERVICE_URL: http://review-service:8084
+    networks: [oss-net]
+
+  ai-review-writer:
+    build: ./ai-service/review-writer
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    networks: [oss-net]
+
+  ai-policy:
+    build: ./ai-service/policy-validation
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    networks: [oss-net]
+
+  # ── Frontend ─────────────────────────────────────────────────
+  user-web:
+    build: ./frontend/user-web
+    ports:
+      - "3000:80"
+    networks: [oss-net]
+
+  admin-web:
+    build: ./frontend/admin-web
+    ports:
+      - "3001:80"
+    networks: [oss-net]
+
+networks:
+  oss-net:
+    driver: bridge
+
+volumes:
+  auth-data:
+  product-data:
+  chat-data:
+  review-data:
+  trade-data:
+  admin-data:
