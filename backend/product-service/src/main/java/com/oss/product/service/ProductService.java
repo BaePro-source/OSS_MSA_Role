@@ -17,6 +17,10 @@ public class ProductService {
     // km 단위 반경을 위도/경도 delta 로 근사 변환 (1도 ≈ 111km)
     private static final double KM_PER_DEGREE = 111.0;
 
+    public List<Product> findAll() {
+        return productRepository.findAllByOrderByCreatedAtDesc();
+    }
+
     public Product create(Long sellerId, ProductRequest req) {
         Product product = Product.builder()
             .sellerId(sellerId)

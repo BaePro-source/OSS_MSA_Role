@@ -17,6 +17,11 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @GetMapping
+    public ResponseEntity<List<Product>> getAll() {
+        return ResponseEntity.ok(productService.findAll());
+    }
+
     @PostMapping
     public ResponseEntity<Product> create(
         @RequestHeader("X-User-Id") Long userId,

@@ -63,7 +63,7 @@ function filterCategory(cat) {
 }
 
 async function load() {
-  const { data } = await api.get('/products/nearby?lat=36.35&lng=127.38&radius=50')
+  const { data } = await api.get('/products')
   products.value = data
 }
 
