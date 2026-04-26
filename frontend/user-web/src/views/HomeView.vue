@@ -8,7 +8,8 @@
         <p class="hero-sub">AI가 당신에게 맞는 물품을 추천해 드려요.<br>믿을 수 있는 판매자와 안전하게 거래하세요.</p>
         <div class="hero-actions">
           <router-link to="/products" class="btn btn-primary btn-lg">지금 둘러보기</router-link>
-          <router-link to="/register" class="btn btn-outline btn-lg">무료로 시작하기</router-link>
+          <router-link v-if="auth.isLoggedIn" to="/products/new" class="btn btn-outline btn-lg">물품 등록하기</router-link>
+          <router-link v-else to="/register" class="btn btn-outline btn-lg">무료로 시작하기</router-link>
         </div>
       </div>
       <div class="hero-visual">
@@ -39,14 +40,24 @@
 
     <!-- CTA -->
     <section class="cta-banner">
-      <h2>지금 바로 시작해보세요</h2>
-      <p>가입하면 AI 추천 서비스를 무료로 이용할 수 있어요</p>
-      <router-link to="/register" class="btn btn-primary btn-lg">무료 회원가입</router-link>
+      <template v-if="auth.isLoggedIn">
+        <h2>오늘 뭔가 팔고 싶으신가요?</h2>
+        <p>지금 바로 물품을 등록하고 거래를 시작해 보세요</p>
+        <router-link to="/products/new" class="btn btn-primary btn-lg">물품 등록하기</router-link>
+      </template>
+      <template v-else>
+        <h2>지금 바로 시작해보세요</h2>
+        <p>가입하면 AI 추천 서비스를 무료로 이용할 수 있어요</p>
+        <router-link to="/register" class="btn btn-primary btn-lg">무료 회원가입</router-link>
+      </template>
     </section>
   </div>
 </template>
 
 <script setup>
+import { useAuthStore } from '../stores/auth.js'
+const auth = useAuthStore()
+
 const features = [
   { icon: '📍', title: '위치 기반 추천', desc: '내 주변 5km 이내 물품을 먼저 보여줘요. 직거래가 훨씬 쉬워져요.' },
   { icon: '🤖', title: 'AI 스마트 추천', desc: '채팅으로 원하는 물품을 말하면 AI가 딱 맞는 것을 찾아줘요.' },
