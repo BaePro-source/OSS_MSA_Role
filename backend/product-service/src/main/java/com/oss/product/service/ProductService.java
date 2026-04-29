@@ -31,6 +31,7 @@ public class ProductService {
             .imageUrl(req.getImageUrl())
             .latitude(req.getLatitude())
             .longitude(req.getLongitude())
+            .status(Product.Status.ON_SALE)
             .build();
         return productRepository.save(product);
     }

@@ -97,7 +97,29 @@ docker compose up --build
 | http://localhost:3001 | 관리자 웹 |
 | http://localhost:8080 | API Gateway |
 
-### 3. 개별 서비스 재빌드
+### 3. 테스트 계정
+
+| 구분 | 이메일 | 비밀번호 |
+|------|--------|----------|
+| 관리자 | admin@gmail.com | admin123 |
+| 일반 사용자 | 회원가입 후 사용 | - |
+
+> 관리자 계정으로 `http://localhost:3001` (관리자 웹)에 로그인하면 게시글 삭제, 사용자 관리 기능을 사용할 수 있습니다.
+
+### 4. Swagger UI
+
+서비스별 API 문서는 각 서비스 포트의 `/swagger-ui/index.html`에서 확인할 수 있습니다.
+
+| 서비스 | Swagger UI |
+|--------|-----------|
+| auth-service | http://localhost:8081/swagger-ui/index.html |
+| product-service | http://localhost:8082/swagger-ui/index.html |
+| chat-service | http://localhost:8083/swagger-ui/index.html |
+| review-service | http://localhost:8084/swagger-ui/index.html |
+| trade-history-service | http://localhost:8085/swagger-ui/index.html |
+| admin-service | http://localhost:8086/swagger-ui/index.html |
+
+### 5. 개별 서비스 재빌드
 
 ```bash
 docker compose build <서비스명>
