@@ -15,18 +15,49 @@
           <h1 class="detail-title">{{ product.title }}</h1>
           <p class="detail-price">{{ product.price.toLocaleString() }}원</p>
         </div>
-        <button
-          v-if="auth.isLoggedIn && product.sellerId !== auth.user?.userId"
-          class="btn btn-primary btn-lg chat-btn"
-          @click="startChat"
-        >
-          💬 채팅으로 거래하기
-        </button>
+        <!-- 판매자 버튼 -->
+        <div class="action-btns" v-if="auth.isLoggedIn && product.sellerId === auth.user?.userId">
+          <button
+            v-if="product.status !== 'SOLD'"
+            class="btn btn-outline btn-lg"
+            @click="markSold"
+          >
+            ✅ 판매 완료로 변경
+          </button>
+          <span v-else class="sold-text">거래 완료된 물품입니다</span>
+        </div>
+        <!-- 구매자 버튼 -->
+        <div class="action-btns" v-if="auth.isLoggedIn && product.sellerId !== auth.user?.userId">
+          <button
+            v-if="product.status !== 'SOLD'"
+            class="btn btn-primary btn-lg"
+            @click="startChat"
+          >
+            💬 채팅으로 거래하기
+          </button>
+        </div>
       </div>
 
       <div class="divider" />
 
       <p class="detail-desc">{{ product.description }}</p>
+
+      <!-- 판매자 정보 -->
+      <div class="seller-card">
+        <div class="seller-avatar">{{ sellerInitial }}</div>
+        <div class="seller-info">
+          <p class="seller-label">판매자</p>
+          <p class="seller-name">{{ sellerNickname }}</p>
+        </div>
+        <router-link
+          v-if="auth.isLoggedIn && product.sellerId !== auth.user?.userId"
+          :to="`/chat?productId=${product.id}`"
+          class="btn btn-outline btn-sm"
+          @click.prevent="startChat"
+        >
+          💬 채팅하기
+        </router-link>
+      </div>
 
       <!-- 판매자 신뢰도 -->
       <div v-if="trust" class="trust-card">
@@ -63,6 +94,10 @@ const auth = useAuthStore()
 const product = ref(null)
 const trust = ref(null)
 const trustLoading = ref(true)
+const sellerNickname = ref('')
+const sellerInitial = computed(() =>
+  sellerNickname.value ? sellerNickname.value.charAt(0).toUpperCase() : '?'
+)
 
 const badgeText = computed(() => ({
   ON_SALE: '판매중', RESERVED: '예약중', SOLD: '거래완료'
@@ -76,9 +111,20 @@ onMounted(async () => {
   const { data } = await api.get(`/products/${route.params.id}`)
   product.value = data
 
+  // 판매자 닉네임
   try {
-    const reviews = await api.get(`/reviews/user/${data.sellerId}`)
-    const summary = await api.get(`/reviews/user/${data.sellerId}/summary`)
+    const { data: seller } = await api.get(`/auth/users/${data.sellerId}`)
+    sellerNickname.value = seller.nickname
+  } catch {
+    sellerNickname.value = `판매자 #${data.sellerId}`
+  }
+
+  // AI 신뢰도 평가
+  try {
+    const [reviews, summary] = await Promise.all([
+      api.get(`/reviews/user/${data.sellerId}`),
+      api.get(`/reviews/user/${data.sellerId}/summary`)
+    ])
     const { data: trustData } = await api.post('/ai/trust/evaluate', {
       target_user_id: data.sellerId,
       reviews: reviews.data,
@@ -89,6 +135,11 @@ onMounted(async () => {
     trustLoading.value = false
   }
 })
+
+async function markSold() {
+  await api.patch(`/products/${product.value.id}/status?status=SOLD`)
+  product.value.status = 'SOLD'
+}
 
 async function startChat() {
   const { data } = await api.post('/chat/rooms', {
@@ -169,7 +220,8 @@ async function startChat() {
   font-weight: 800;
   color: var(--primary);
 }
-.chat-btn { flex-shrink: 0; }
+.action-btns { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; }
+.sold-text { font-size: 13px; color: var(--text-muted); font-weight: 600; }
 
 .detail-desc {
   font-size: 15px;
@@ -178,6 +230,33 @@ async function startChat() {
   margin-bottom: 28px;
   white-space: pre-wrap;
 }
+
+.seller-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.seller-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.seller-info { flex: 1; }
+.seller-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
+.seller-name { font-size: 15px; font-weight: 700; }
 
 .trust-card {
   background: var(--bg);

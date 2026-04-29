@@ -9,6 +9,7 @@ const routes = [
   { path: '/products/new', component: () => import('../views/ProductCreateView.vue'), meta: { auth: true } },
   { path: '/products/:id', component: () => import('../views/ProductDetailView.vue') },
   { path: '/chat',      component: () => import('../views/ChatView.vue'), meta: { auth: true } },
+  { path: '/reviews/new', component: () => import('../views/ReviewCreateView.vue'), meta: { auth: true } },
   { path: '/profile',   component: () => import('../views/ProfileView.vue'), meta: { auth: true } },
 ]
 

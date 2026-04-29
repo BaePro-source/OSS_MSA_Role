@@ -22,7 +22,7 @@
             <router-link to="/profile" class="avatar-btn" :title="auth.user?.nickname">
               {{ auth.user?.nickname?.charAt(0)?.toUpperCase() }}
             </router-link>
-            <button class="btn btn-ghost btn-sm" @click="auth.logout()">로그아웃</button>
+            <button class="btn btn-ghost btn-sm" @click="logout">로그아웃</button>
           </template>
           <template v-else>
             <router-link to="/login" class="btn btn-ghost btn-sm">로그인</router-link>
@@ -40,7 +40,15 @@
 
 <script setup>
 import { useAuthStore } from './stores/auth.js'
+import { useRouter } from 'vue-router'
+
 const auth = useAuthStore()
+const router = useRouter()
+
+async function logout() {
+  await auth.logout()
+  router.push('/')
+}
 </script>
 
 <style scoped>

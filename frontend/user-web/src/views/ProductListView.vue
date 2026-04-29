@@ -31,7 +31,17 @@
     </div>
 
     <!-- 상품 그리드 -->
-    <div class="products-grid" v-if="filtered.length">
+    <div v-if="loading" class="products-grid">
+      <div v-for="i in 8" :key="i" class="skeleton-card">
+        <div class="skeleton-img" />
+        <div class="skeleton-body">
+          <div class="skeleton-line w-80" />
+          <div class="skeleton-line w-40" />
+          <div class="skeleton-line w-60" />
+        </div>
+      </div>
+    </div>
+    <div v-else-if="filtered.length" class="products-grid">
       <ProductCard v-for="p in filtered" :key="p.id" :product="p" />
     </div>
     <div v-else class="empty-state">
@@ -52,6 +62,7 @@ const products = ref([])
 const keyword = ref('')
 const selectedCategory = ref('전체')
 const categories = ['전자기기', '의류', '가구', '도서', '스포츠', '기타']
+const loading = ref(false)
 
 const filtered = computed(() => {
   if (selectedCategory.value === '전체') return products.value
@@ -63,21 +74,36 @@ function filterCategory(cat) {
 }
 
 async function load() {
-  const { data } = await api.get('/products')
-  products.value = data
+  loading.value = true
+  try {
+    const { data } = await api.get('/products')
+    products.value = data
+  } finally {
+    loading.value = false
+  }
 }
 
 async function search() {
   if (!keyword.value.trim()) return load()
-  const { data } = await api.get(`/products/search?keyword=${keyword.value}`)
-  products.value = data
+  loading.value = true
+  try {
+    const { data } = await api.get(`/products/search?keyword=${keyword.value}`)
+    products.value = data
+  } finally {
+    loading.value = false
+  }
 }
 
 async function loadNearby() {
   navigator.geolocation.getCurrentPosition(async pos => {
-    const { latitude: lat, longitude: lng } = pos.coords
-    const { data } = await api.get(`/products/nearby?lat=${lat}&lng=${lng}&radius=5`)
-    products.value = data
+    loading.value = true
+    try {
+      const { latitude: lat, longitude: lng } = pos.coords
+      const { data } = await api.get(`/products/nearby?lat=${lat}&lng=${lng}&radius=5`)
+      products.value = data
+    } finally {
+      loading.value = false
+    }
   })
 }
 
@@ -165,4 +191,34 @@ onMounted(load)
 }
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-text { font-size: 16px; color: var(--text-muted); margin-bottom: 24px; }
+
+/* 스켈레톤 */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.skeleton-img {
+  width: 100%;
+  padding-top: 72%;
+  background: linear-gradient(90deg, #ececec 25%, #f5f5f5 50%, #ececec 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.skeleton-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.skeleton-line {
+  height: 12px;
+  border-radius: var(--r-full);
+  background: linear-gradient(90deg, #ececec 25%, #f5f5f5 50%, #ececec 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.w-80 { width: 80%; }
+.w-60 { width: 60%; }
+.w-40 { width: 40%; }
 </style>

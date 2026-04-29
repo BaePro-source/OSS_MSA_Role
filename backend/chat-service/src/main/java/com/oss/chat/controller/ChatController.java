@@ -4,6 +4,8 @@ import com.oss.chat.dto.ChatMessageDto;
 import com.oss.chat.entity.ChatMessage;
 import com.oss.chat.entity.ChatRoom;
 import com.oss.chat.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "채팅", description = "채팅방 생성·조회 및 실시간 메시지 (STOMP: /app/chat.send)")
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
@@ -29,7 +32,7 @@ public class ChatController {
         messagingTemplate.convertAndSend("/topic/room/" + dto.getRoomId(), saved);
     }
 
-    // REST: 채팅방 생성 또는 조회
+    @Operation(summary = "채팅방 생성 또는 조회", description = "productId + sellerId로 채팅방 생성, 이미 존재하면 기존 방 반환")
     @PostMapping("/rooms")
     public ResponseEntity<ChatRoom> getOrCreateRoom(
         @RequestHeader("X-User-Id") Long userId,
@@ -40,13 +43,13 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getOrCreateRoom(productId, userId, sellerId));
     }
 
-    // REST: 내 채팅방 목록
+    @Operation(summary = "내 채팅방 목록 조회")
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoom>> myRooms(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(chatService.getRooms(userId));
     }
 
-    // REST: 채팅 내역 조회
+    @Operation(summary = "채팅 내역 조회")
     @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<List<ChatMessage>> messages(@PathVariable Long roomId) {
         return ResponseEntity.ok(chatService.getMessages(roomId));

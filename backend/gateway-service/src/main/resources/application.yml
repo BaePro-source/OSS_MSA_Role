@@ -17,7 +17,7 @@ spring:
         - id: product-service
           uri: http://product-service:8082
           predicates:
-            - Path=/api/products/**
+            - Path=/api/products, /api/products/**
 
         # Chat (REST + WebSocket)
         - id: chat-service
@@ -25,7 +25,7 @@ spring:
           predicates:
             - Path=/api/chat/**
         - id: chat-ws
-          uri: ws://chat-service:8083
+          uri: http://chat-service:8083
           predicates:
             - Path=/ws/**
 
@@ -45,7 +45,7 @@ spring:
         - id: admin-service
           uri: http://admin-service:8086
           predicates:
-            - Path=/api/admin/**
+            - Path=/api/admin, /api/admin/**
 
         # AI Services
         - id: ai-recommendation

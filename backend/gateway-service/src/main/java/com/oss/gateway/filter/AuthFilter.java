@@ -26,7 +26,10 @@ public class AuthFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_PATHS = List.of(
         "/api/auth/login",
         "/api/auth/register",
-        "/api/auth/refresh"
+        "/api/auth/refresh",
+        "/ws/",
+        "/swagger-ui",
+        "/v3/api-docs"
     );
 
     @Override
